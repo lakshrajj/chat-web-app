@@ -25,14 +25,14 @@ const Home = () => {
 
           <Switch>
             <Route exact path="/chat/:chatId">
-              <Col className="h-100" xs={24} md={8}>
+              <Col className="h-100" xs={24} md={16}>
                 <Chat />
               </Col>
             </Route>
 
             <Route>
               {isDesktop && (
-                <Col className="h-100" xs={24} md={8}>
+                <Col className="h-100" xs={24} md={16}>
                   <h6 className="text-center mt-page">
                     Please Select Chat Room !
                   </h6>
