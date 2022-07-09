@@ -19,11 +19,21 @@ const renderFileMessage = file => {
     );
   }
 
+  if (file.contentType.includes('audio')) {
+    return (
+      // eslint-disable-next-line jsx-a11y/media-has-caption
+      <audio controls>
+        <source src={file.url} type="audio/mp3" />
+        Your browser does not support the audio element.
+      </audio>
+    );
+  }
+
   return <a href={file.url}>Download {file.name}</a>;
 };
 
-const MessageItem = ({ messages, handleAdmin, handleLike, handleDelete }) => {
-  const { author, createdAt, text, file, likes, likeCount } = messages;
+const MessageItem = ({ message, handleAdmin, handleLike, handleDelete }) => {
+  const { author, createdAt, text, file, likes, likeCount } = message;
 
   const [selfRef, isHover] = useHover();
   const isMobile = useMediaQuery('(max-width: 992px)');
@@ -74,7 +84,7 @@ const MessageItem = ({ messages, handleAdmin, handleLike, handleDelete }) => {
           isVisible={canShowIcons}
           iconName="heart"
           tooltip="Like this Message"
-          onClick={() => handleLike(messages.id)}
+          onClick={() => handleLike(message.id)}
           badgeContent={likeCount}
         />
         {isAuthor && (
@@ -83,7 +93,7 @@ const MessageItem = ({ messages, handleAdmin, handleLike, handleDelete }) => {
             isVisible={canShowIcons}
             iconName="close"
             tooltip="Delete this Message"
-            onClick={() => handleDelete(messages.id)}
+            onClick={() => handleDelete(message.id, file)}
           />
         )}
       </div>

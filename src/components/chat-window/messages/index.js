@@ -2,8 +2,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'react-router';
 import { Alert } from 'rsuite';
-import { auth, database } from '../../../misc/firebase';
-import { transformArrWithId } from '../../../misc/helpers';
+import { auth, database, storage } from '../../../misc/firebase';
+import { transformArrWithId, groupBy } from '../../../misc/helpers';
 import MessageItem from './MessageItem';
 
 const Messages = () => {
@@ -78,7 +78,7 @@ const Messages = () => {
   }, []);
 
   const handleDelete = useCallback(
-    async msgId => {
+    async (msgId, file) => {
       // eslint-disable-next-line no-alert
       if (!window.confirm('Delete this Messgae')) {
         return;
@@ -103,25 +103,56 @@ const Messages = () => {
         await database.ref().update(updates);
         Alert.info('Message has been Deleted', 1500);
       } catch (error) {
-        Alert.error(error.message, 3000);
+        // eslint-disable-next-line consistent-return
+        return Alert.error(err.message);
+      }
+
+      if (file) {
+        try {
+          const fileRef = storage.refFromURL(file.url);
+          await fileRef.delete();
+        } catch (err) {
+          Alert.error(err.message);
+        }
       }
     },
     [chatId, messages]
   );
 
+  const renderMessages = () => {
+    const groups = groupBy(messages, item =>
+      new Date(item.createdAt).toDateString()
+    );
+
+    const items = [];
+
+    Object.keys(groups).forEach(date => {
+      items.push(
+        <li key={date} className="text-center mb-1 padded">
+          {date}
+        </li>
+      );
+
+      const msgs = groups[date].map(msg => (
+        <MessageItem
+          key={msg.id}
+          message={msg}
+          handleAdmin={handleAdmin}
+          handleLike={handleLike}
+          handleDelete={handleDelete}
+        />
+      ));
+
+      items.push(...msgs);
+    });
+
+    return items;
+  };
+
   return (
     <ul className="msg-list custom-scroll">
       {isChatEmpty && <li>No Messages Yet..</li>}
-      {canShowMessage &&
-        messages.map(msg => (
-          <MessageItem
-            key={msg.id}
-            messages={msg}
-            handleAdmin={handleAdmin}
-            handleLike={handleLike}
-            handleDelete={handleDelete}
-          />
-        ))}
+      {canShowMessage && renderMessages()}
     </ul>
   );
 };
